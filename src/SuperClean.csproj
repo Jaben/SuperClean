@@ -36,7 +36,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Args, Version=1.1.0.37402, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>packages\Args.1.1.2\lib\Net40\Args.dll</HintPath>
+      <HintPath>..\packages\Args.1.1.2\lib\Net40\Args.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -47,7 +47,7 @@
     <Reference Include="System.Data" />
     <Reference Include="System.Xml" />
     <Reference Include="ZetaLongPaths, Version=1.0.0.11, Culture=neutral, PublicKeyToken=b764f59068f31f38, processorArchitecture=MSIL">
-      <HintPath>packages\ZetaLongPaths.1.0.0.11\lib\net40-full\ZetaLongPaths.dll</HintPath>
+      <HintPath>..\packages\ZetaLongPaths.1.0.0.11\lib\net40-full\ZetaLongPaths.dll</HintPath>
       <Private>True</Private>
     </Reference>
   </ItemGroup>
@@ -59,11 +59,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
-    <None Include="LICENSE" />
     <None Include="packages.config" />
-    <None Include="README.md" />
-    <None Include="SuperClean.sln.DotSettings" />
-    <None Include="SuperCleanSettings.DotSettings" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="FodyWeavers.xml" />
@@ -76,11 +72,11 @@
   <Choose>
     <When Condition="$(TargetFrameworkIdentifier) == '.NETFramework' And ($(TargetFrameworkVersion) == 'v4.5.2' Or $(TargetFrameworkVersion) == 'v4.5.3' Or $(TargetFrameworkVersion) == 'v4.6' Or $(TargetFrameworkVersion) == 'v4.6.1' Or $(TargetFrameworkVersion) == 'v4.6.2')" />
   </Choose>
-  <Import Project="packages\Fody.1.29.4\build\dotnet\Fody.targets" Condition="Exists('packages\Fody.1.29.4\build\dotnet\Fody.targets')" />
+  <Import Project="..\packages\Fody.1.29.4\build\dotnet\Fody.targets" Condition="Exists('packages\Fody.1.29.4\build\dotnet\Fody.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('packages\Fody.1.29.4\build\dotnet\Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Fody.1.29.4\build\dotnet\Fody.targets'))" />
+    <Error Condition="!Exists('..\packages\Fody.1.29.4\build\dotnet\Fody.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Fody.1.29.4\build\dotnet\Fody.targets'))" />
   </Target>
 </Project>
