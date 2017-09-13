@@ -1,12 +1,13 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26730.15
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SuperClean", "src\SuperClean.csproj", "{7A542B5C-D603-46A5-88EA-CA8D9CF5C9C5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SuperClean", "src\SuperClean.csproj", "{7A542B5C-D603-46A5-88EA-CA8D9CF5C9C5}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Extras", "Extras", "{295F26FF-C0DF-4C5C-A84A-A08C3F0204A5}"
 	ProjectSection(SolutionItems) = preProject
+		appveyor.yml = appveyor.yml
 		LICENSE = LICENSE
 		README.md = README.md
 	EndProjectSection
@@ -24,5 +25,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {3F9C8DA0-9974-4752-8990-2DFD5EB5158A}
 	EndGlobalSection
 EndGlobal

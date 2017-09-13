@@ -46,7 +46,7 @@ namespace SuperClean
 
             var root = Directory.GetCurrentDirectory();
 
-            var searchDirectoriesNamed = new[] { "bin", "debug", "release" };
+            var searchDirectoriesNamed = new[] { "bin", "obj", "debug", "release" };
             var fileMasks = new[] { "*.dll", "*.pdb", "*.exe" };
 
             try
@@ -105,7 +105,7 @@ namespace SuperClean
         {
             WriteLineColor(ConsoleColor.DarkCyan, new string('*', 60));
             WriteColor(ConsoleColor.DarkCyan, "* ");
-            WriteLineColor(ConsoleColor.Cyan, $"SuperClean (v{Version}) - Copyright 2016 CaptiveAire");
+            WriteLineColor(ConsoleColor.Cyan, $"SuperClean (v{Version}) - Copyright 2016-2017 CaptiveAire");
             WriteColor(ConsoleColor.DarkCyan, "* ");
             WriteLineColor(ConsoleColor.Gray, "https://github.com/CaptiveAire/SuperClean");
             WriteLineColor(ConsoleColor.DarkCyan, new string('*', 60));
