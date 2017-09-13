@@ -27,6 +27,10 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
+using Serilog;
+using Serilog.Core;
+using Serilog.Events;
+
 using SuperClean.FileSystem;
 using SuperClean.ServiceLocation;
 
@@ -54,6 +58,8 @@ namespace SuperClean
             var fileMasks = new[] { "*.dll", "*.pdb", "*.exe", ".cache" };
             var ignoreDirectoriesNamed = new[] { ".git", ".vs", ".build", ".nuget", "node_modules", "packages" };
 
+            var logger = AppServiceLocation.Instance.GetService<ILogger>();
+
             try
             {
                 var fileSystemHelper = AppServiceLocation.Instance.GetService<FileSystemHelper>();
@@ -66,21 +72,32 @@ namespace SuperClean
 
                 if (!totalSuccess.Any())
                 {
-                    Console.WriteLine("No Files Found");
-                    Console.WriteLine();
+                    logger.Information("No files found");
                 }
             }
             catch (Exception ex)
             {
-                Console.WriteLine("Failure: " + ex);
+                logger.Fatal(ex, "Unhandled exception");
                 Environment.Exit(1);
             }
+
+            Console.WriteLine();
         }
 
         static void RegisterServices()
         {
             AppServiceLocation.RegisterService<IFileSystem>(p => new LongFileSystem());
-            AppServiceLocation.RegisterService(p => new FileSystemHelper(p.GetService<IFileSystem>()));
+            AppServiceLocation.RegisterService<LoggingLevelSwitch>(
+                p => new LoggingLevelSwitch(),
+                (i, p) => i.MinimumLevel = LogEventLevel.Information);
+
+            AppServiceLocation.RegisterService<ILogger>(
+                p => new LoggerConfiguration().MinimumLevel.ControlledBy(p.GetService<LoggingLevelSwitch>())
+                    .WriteTo.LiterateConsole()
+                    .CreateLogger(),
+                (instance, provider) => Log.Logger = instance);
+
+            AppServiceLocation.RegisterService(p => new FileSystemHelper(p.GetService<IFileSystem>(), p.GetService<ILogger>()));
         }
 
         static void OutputConsoleHeader()

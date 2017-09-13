@@ -52,10 +52,17 @@ namespace SuperClean.ServiceLocation
             return instance;
         }
 
-        internal static void RegisterService<T>(Func<IServiceProvider, T> instanceFunc)
+        internal static void RegisterService<T>(Func<IServiceProvider, T> instanceFunc, Action<T, IServiceProvider> onActivate = null)
             where T : class
         {
-            _servicesFactories.TryAdd(typeof(T), instanceFunc);
+            _servicesFactories.TryAdd(
+                typeof(T),
+                serviceProvider =>
+                    {
+                        var createdInstance = instanceFunc(serviceProvider);
+                        onActivate?.Invoke(createdInstance, serviceProvider);
+                        return createdInstance;
+                    });
         }
     }
 }

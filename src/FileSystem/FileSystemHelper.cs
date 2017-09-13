@@ -23,36 +23,44 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
+
+using Serilog;
 
 namespace SuperClean.FileSystem
 {
     public class FileSystemHelper
     {
         readonly IFileSystem _fileSystem;
+        readonly ILogger _logger;
 
-        public FileSystemHelper(IFileSystem fileSystem)
+        public FileSystemHelper(IFileSystem fileSystem, ILogger logger)
         {
             this._fileSystem = fileSystem;
+            this._logger = logger;
         }
 
         public string[] GetDirectories(
             string baseDirectory,
-            string[] directoryNames,
-            string[] ignoreDirectoriesNamed)
+            string[] includeDirectoriesNamed,
+            string[] excludeDirectoriesNamed)
         {
             IEnumerable<string> GetDirectoriesRecursive(string currentDirectory)
             {
-                Console.WriteLine("Checking Directory " + currentDirectory);
-
                 foreach (var directory in this._fileSystem.GetDirectories(currentDirectory))
                 {
-                    if (ignoreDirectoriesNamed.Any(s => directory.EndsWith($@"\{s}", StringComparison.InvariantCultureIgnoreCase)))
+                    if (excludeDirectoriesNamed != null && excludeDirectoriesNamed.Any(s => directory.EndsWith($@"\{s}", StringComparison.OrdinalIgnoreCase)))
                     {
                         continue;
                     }
 
-                    if (directoryNames.Any(s => directory.EndsWith(s, StringComparison.OrdinalIgnoreCase)))
+                    if (includeDirectoriesNamed != null)
+                    {
+                        if (includeDirectoriesNamed.Any(s => directory.EndsWith($@"\{s}", StringComparison.OrdinalIgnoreCase)))
+                        {
+                            yield return directory;
+                        }
+                    }
+                    else
                     {
                         yield return directory;
                     }
@@ -75,9 +83,7 @@ namespace SuperClean.FileSystem
                 foreach (var r in this.DeleteFiles(directory, fileMasks))
                     yield return r;
 
-                var nestedDirectories = this.GetDirectories(directory, new string[0], ignoreDirectoriesNamed);
-
-                Console.WriteLine("Recurising into: " + string.Join(", ", nestedDirectories));
+                var nestedDirectories = this.GetDirectories(directory, null, ignoreDirectoriesNamed);
 
                 foreach (var r in this.DeleteFilesInDirectories(nestedDirectories, fileMasks, ignoreDirectoriesNamed))
                     yield return r;
@@ -98,20 +104,14 @@ namespace SuperClean.FileSystem
                 var success = results.OfType<IOperationResultSuccess>().ToList();
                 if (success.Any())
                 {
-                    Console.WriteLine($"Deleted {success.Count} Files in Directory {directory}");
-                }
-
-                var failure = results.OfType<IOperationResultFailure>().ToList();
-                if (failure.Any())
-                {
-                    failure.SelectMany(s => s.Messages).ToList().ForEach(s => Console.WriteLine(s));
+                    this._logger.Information("Deleted {SuccessCountFiles} File(s) in Directory {Directory}", success.Count, directory);
                 }
             }
 
             return results;
         }
 
-        IEnumerable<IOperationResult> DeleteFiles(string directory, string mask)
+        IEnumerable<IOperationResult> DeleteFiles(string directory, string mask = "*.*")
         {
             foreach (var file in this._fileSystem.GetFiles(directory, mask))
             {
@@ -123,6 +123,7 @@ namespace SuperClean.FileSystem
                 }
                 catch (UnauthorizedAccessException)
                 {
+                    this._logger.Warning("Access denied when deleting file {File}", file);
                     failureMessage = $"Access denied deleting file: {file}";
                 }
 
