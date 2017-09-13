@@ -25,14 +25,17 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
-using SuperClean.Helpers;
+using SuperClean.FileSystem;
+using SuperClean.ServiceLocation;
 
 namespace SuperClean
 {
     internal class Program
     {
         static string Version => _version.Value;
+
         static readonly Lazy<string> _version = new Lazy<string>(
             () =>
                 {
@@ -42,51 +45,24 @@ namespace SuperClean
 
         private static void Main(string[] args)
         {
+            RegisterServices();
             OutputConsoleHeader();
 
             var root = Directory.GetCurrentDirectory();
 
-            var searchDirectoriesNamed = new[] { "bin", "obj", "debug", "release" };
-            var fileMasks = new[] { "*.dll", "*.pdb", "*.exe" };
+            var searchDirectoriesNamed = new[] { "bin", "obj" };
+            var fileMasks = new[] { "*.dll", "*.pdb", "*.exe", ".cache" };
+            var ignoreDirectoriesNamed = new[] { ".git", ".vs", ".build", ".nuget", "node_modules", "packages" };
 
             try
             {
-                var foundDirectories = IOHelpers.GetDirectories(root, searchDirectoriesNamed).OrderBy(s => s.Length).ToList();
+                var fileSystemHelper = AppServiceLocation.Instance.GetService<FileSystemHelper>();
 
-                var totalSuccess = new List<IOperationResultSuccess>();
+                var foundDirectories = fileSystemHelper.GetDirectories(root, searchDirectoriesNamed, ignoreDirectoriesNamed);
 
-                foreach (var directory in foundDirectories)
-                {
-                    List<IOperationResult> results = new List<IOperationResult>();
-
-                    try
-                    {
-                        foreach (var mask in fileMasks)
-                        {
-                            results.AddRange(IOHelpers.DeleteFiles(directory, mask));
-                        }
-                    }
-                    catch (UnauthorizedAccessException)
-                    {
-                        Console.WriteLine($"Unable to access directory: {directory}");
-                    }
-
-                    if (results.Any())
-                    {
-                        var success = results.OfType<IOperationResultSuccess>().ToList();
-                        if (success.Any())
-                        {
-                            Console.WriteLine($"Deleted {success.Count} Files in Directory {directory}");
-                            totalSuccess.AddRange(success);
-                        }
-
-                        var failure = results.OfType<IOperationResultFailure>().ToList();
-                        if (failure.Any())
-                        {
-                            failure.SelectMany(s => s.Messages).ToList().ForEach(s => Console.WriteLine(s));
-                        }
-                    }
-                }
+                var totalSuccess = fileSystemHelper.DeleteFilesInDirectories(foundDirectories, fileMasks, ignoreDirectoriesNamed)
+                    .OfType<IOperationResultSuccess>()
+                    .ToList();
 
                 if (!totalSuccess.Any())
                 {
@@ -99,6 +75,12 @@ namespace SuperClean
                 Console.WriteLine("Failure: " + ex);
                 Environment.Exit(1);
             }
+        }
+
+        static void RegisterServices()
+        {
+            AppServiceLocation.RegisterService<IFileSystem>(p => new LongFileSystem());
+            AppServiceLocation.RegisterService(p => new FileSystemHelper(p.GetService<IFileSystem>()));
         }
 
         static void OutputConsoleHeader()

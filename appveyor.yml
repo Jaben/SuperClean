@@ -1,5 +1,14 @@
 os: Visual Studio 2017
 
+version: 1.0.{build}
+
+assembly_info:
+  patch: true
+  file: '**\AssemblyInfo.*'
+  assembly_version: '{version}'
+  assembly_file_version: '{version}'
+  assembly_informational_version: '{version}'
+
 configuration: Release
 
 before_build:
