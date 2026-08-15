@@ -48,7 +48,7 @@ jobs:
 
       - name: Push to NuGet
         if: github.event_name != 'pull_request' && github.ref_name == 'master'
-        run: dotnet nuget push nupkg\*.nupkg --source 'https://api.nuget.org/v3/index.json' -k ${{ secrets.NUGETKEY }} --skip-duplicate
+        run: dotnet nuget push nupkg\*.nupkg --source 'https://api.nuget.org/v3/index.json' -k ${{ secrets.NUGET_API_KEY }} --skip-duplicate
 
       - name: Create GitHub release
         if: github.event_name != 'pull_request' && github.ref_name == 'master'

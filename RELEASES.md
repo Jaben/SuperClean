@@ -50,4 +50,4 @@ git push origin master --tags
 - **Workflow**: `.github/workflows/build.yml`
 - **Triggers**: All pushes and pull requests (build + pack). NuGet publish and GitHub Release only on push to `master`.
 - **Versioning**: GitVersion with `ContinuousDelivery` mode (`GitVersion.yml`).
-- **NuGet API key**: Stored as `NUGETKEY` repository secret.
+- **NuGet API key**: Stored as `NUGET_API_KEY` repository secret.
