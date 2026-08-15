@@ -17,13 +17,16 @@ This project follows [Gitflow](https://nvie.com/posts/a-successful-git-branching
 - All work for the release is merged into `develop`.
 - CI is green on `develop`.
 
-### 2. Merge `develop` into `master`
+### 2. Merge `develop` into `master` and tag
+
+Tagging is required — GitVersion (ContinuousDelivery mode) produces a prerelease version (e.g. `2.0.1-8`) for untagged commits on `master`, which nuget.org rejects. The tag is what makes the release version clean.
 
 ```bash
 git checkout master
 git pull origin master
 git merge --no-ff develop
-git push origin master
+git tag X.Y.Z
+git push origin master --tags
 ```
 
 This push triggers the GitHub Actions workflow (`.github/workflows/build.yml`) which will:
@@ -34,16 +37,7 @@ This push triggers the GitHub Actions workflow (`.github/workflows/build.yml`) w
 4. Publish the standalone single-file `SuperClean.exe`.
 5. Create/update the GitHub Release for the version tag with both attached.
 
-### 3. Bumping major/minor versions
-
-GitVersion increments the patch version by default. To bump major or minor, tag `master` explicitly as part of the release merge:
-
-```bash
-git tag X.Y.0
-git push origin master --tags
-```
-
-(Tags use no `v` prefix, e.g. `2.1.0` — matching existing tags.)
+Tags use no `v` prefix (e.g. `2.1.0`), matching existing tags. GitVersion increments the patch by default between releases; pick the tag number to bump major/minor.
 
 ## CI/CD Details
 
