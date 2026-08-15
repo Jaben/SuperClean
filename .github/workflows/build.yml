@@ -35,7 +35,7 @@ jobs:
         run: dotnet build src/SuperClean.csproj -c Release -p:Version=${{ steps.gitversion.outputs.FullSemVer }}
 
       - name: Pack dotnet tool
-        run: dotnet pack src/SuperClean.csproj -c Release -o nupkg -p:PackageVersion=${{ steps.gitversion.outputs.FullSemVer }}
+        run: dotnet pack src/SuperClean.csproj -c Release -o nupkg -p:Version=${{ steps.gitversion.outputs.FullSemVer }}
 
       - name: Publish single-file exe
         run: dotnet publish src/SuperClean.csproj -c Release -r win-x64 -o publish -p:Version=${{ steps.gitversion.outputs.FullSemVer }}
