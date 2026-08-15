@@ -1,7 +1,7 @@
 # SuperClean
 Command line tool that recursively cleans `bin` and `obj` directories of build output (`*.dll`, `*.pdb`, `*.exe`, `*.cache`).
 
-[![Build](https://github.com/Jaben/SuperClean/actions/workflows/build.yml/badge.svg)](https://github.com/Jaben/SuperClean/actions/workflows/build.yml)
+[![Build](https://github.com/Jaben/SuperClean/actions/workflows/build.yml/badge.svg)](https://github.com/Jaben/SuperClean/actions/workflows/build.yml) [![NuGet](https://img.shields.io/nuget/v/SuperClean.svg)](https://www.nuget.org/packages/SuperClean/)
 
 ## Usage
 
