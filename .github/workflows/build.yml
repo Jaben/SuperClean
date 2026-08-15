@@ -19,17 +19,30 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
+      - name: Set version from tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: echo "VERSION_ARG=-p:Version=$('${{ github.ref_name }}'.TrimStart('v'))" >> $env:GITHUB_ENV
+
       - name: Build
-        run: dotnet build src/SuperClean.csproj -c Release
+        run: dotnet build src/SuperClean.csproj -c Release $env:VERSION_ARG
+
+      - name: Pack dotnet tool
+        run: dotnet pack src/SuperClean.csproj -c Release -o nupkg $env:VERSION_ARG
 
       - name: Publish single-file exe
-        run: dotnet publish src/SuperClean.csproj -c Release -r win-x64 -o publish
+        run: dotnet publish src/SuperClean.csproj -c Release -r win-x64 -o publish $env:VERSION_ARG
 
-      - name: Upload artifact
+      - name: Upload exe artifact
         uses: actions/upload-artifact@v4
         with:
           name: SuperClean
           path: publish/SuperClean.exe
+
+      - name: Upload nupkg artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: SuperClean-nupkg
+          path: nupkg/*.nupkg
 
   release:
     if: startsWith(github.ref, 'refs/tags/v')
@@ -43,7 +56,23 @@ jobs:
         with:
           name: SuperClean
 
+      - uses: actions/download-artifact@v4
+        with:
+          name: SuperClean-nupkg
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Push to NuGet
+        run: dotnet nuget push "*.nupkg" -k "$NUGET_API_KEY" -s https://api.nuget.org/v3/index.json --skip-duplicate
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          files: SuperClean.exe
+          files: |
+            SuperClean.exe
+            *.nupkg
