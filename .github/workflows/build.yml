@@ -1,36 +1,44 @@
 name: Build
 
-on:
-  push:
-    branches: [master]
-    tags: ['v*']
-  pull_request:
-    branches: [master]
+on: [push, pull_request]
 
 jobs:
   build:
     runs-on: windows-latest
 
+    permissions:
+      contents: write
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
 
-      - name: Set version from tag
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: echo "VERSION_ARG=-p:Version=$('${{ github.ref_name }}'.TrimStart('v'))" >> $env:GITHUB_ENV
+      - name: Install GitVersion
+        uses: gittools/actions/gitversion/setup@v4.1.0
+        with:
+          versionSpec: '6.x'
+
+      - name: GitVersion
+        id: gitversion
+        uses: gittools/actions/gitversion/execute@v4.1.0
+        with:
+          configFilePath: GitVersion.yml
 
       - name: Build
-        run: dotnet build src/SuperClean.csproj -c Release $env:VERSION_ARG
+        run: dotnet build src/SuperClean.csproj -c Release -p:Version=${{ steps.gitversion.outputs.FullSemVer }}
 
       - name: Pack dotnet tool
-        run: dotnet pack src/SuperClean.csproj -c Release -o nupkg $env:VERSION_ARG
+        run: dotnet pack src/SuperClean.csproj -c Release -o nupkg -p:PackageVersion=${{ steps.gitversion.outputs.FullSemVer }}
 
       - name: Publish single-file exe
-        run: dotnet publish src/SuperClean.csproj -c Release -r win-x64 -o publish $env:VERSION_ARG
+        run: dotnet publish src/SuperClean.csproj -c Release -r win-x64 -o publish -p:Version=${{ steps.gitversion.outputs.FullSemVer }}
 
       - name: Upload exe artifact
         uses: actions/upload-artifact@v4
@@ -38,41 +46,16 @@ jobs:
           name: SuperClean
           path: publish/SuperClean.exe
 
-      - name: Upload nupkg artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: SuperClean-nupkg
-          path: nupkg/*.nupkg
-
-  release:
-    if: startsWith(github.ref, 'refs/tags/v')
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-
-    steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: SuperClean
-
-      - uses: actions/download-artifact@v4
-        with:
-          name: SuperClean-nupkg
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 10.0.x
-
       - name: Push to NuGet
-        run: dotnet nuget push "*.nupkg" -k "$NUGET_API_KEY" -s https://api.nuget.org/v3/index.json --skip-duplicate
-        env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        if: github.event_name != 'pull_request' && github.ref_name == 'master'
+        run: dotnet nuget push nupkg\*.nupkg --source 'https://api.nuget.org/v3/index.json' -k ${{ secrets.NUGETKEY }} --skip-duplicate
 
       - name: Create GitHub release
+        if: github.event_name != 'pull_request' && github.ref_name == 'master'
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.gitversion.outputs.MajorMinorPatch }}
+          name: v${{ steps.gitversion.outputs.MajorMinorPatch }}
           files: |
-            SuperClean.exe
-            *.nupkg
+            publish/SuperClean.exe
+            nupkg/*.nupkg
