@@ -4,7 +4,6 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <Version>2.0.0</Version>
     <Product>SuperClean</Product>
     <Description>Command line tool that recursively cleans bin and obj directories of build output.</Description>
     <Copyright>Copyright © 2016-2026 Jaben Cargman</Copyright>
